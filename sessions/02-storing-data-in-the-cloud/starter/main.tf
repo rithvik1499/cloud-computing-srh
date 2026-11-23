@@ -85,11 +85,29 @@ resource "google_bigquery_table" "bookings" {
   clustering = ["trade_lane"]
 }
 
-# TODO: you write this one.
-# Create a `schedules` table using the columns in event-generator/README.md.
-# Hints: planned_departure, planned_arrival, actual_departure and actual_arrival are DATETIME.
-# Partition by planned_departure (DAY) and cluster by carrier_code.
-#
-# resource "google_bigquery_table" "schedules" {
-#   ...
-# }
+resource "google_bigquery_table" "schedules" {
+  dataset_id          = google_bigquery_dataset.freight.dataset_id
+  table_id            = "schedules"
+  deletion_protection = false
+
+  schema = jsonencode([
+    { name = "schedule_id", type = "STRING", mode = "REQUIRED" },
+    { name = "mode", type = "STRING" },
+    { name = "carrier_code", type = "STRING" },
+    { name = "origin", type = "STRING" },
+    { name = "destination", type = "STRING" },
+    { name = "trade_lane", type = "STRING" },
+    { name = "vessel_or_flight", type = "STRING" },
+    { name = "planned_departure", type = "DATETIME", mode = "REQUIRED" },
+    { name = "planned_arrival", type = "DATETIME" },
+    { name = "actual_departure", type = "DATETIME" },
+    { name = "actual_arrival", type = "DATETIME" },
+  ])
+
+  time_partitioning {
+    type  = "DAY"
+    field = "planned_departure"
+  }
+
+  clustering = ["carrier_code"]
+}
